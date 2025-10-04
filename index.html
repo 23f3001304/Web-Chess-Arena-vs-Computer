@@ -3,460 +3,409 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Chess Arena</title>
+    <title>Quantum Chess Arena</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" integrity="sha384-q94+BZGIezL/+AxCMs6DweK7/AqzdAUOaxfxSjgLoeFnGeOBquD8GdNC/ikuAabf" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+          integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
+          crossorigin="anonymous">
     <style>
         :root {
-            --color-bg: #111111;
-            --color-surface: #1d1d1d;
-            --color-primary: #a855f7;
-            --color-secondary: #34d399;
-            --color-text-primary: #f5f5f5;
-            --color-text-secondary: #a3a3a3;
-            --color-border: #333333;
-            --font-family-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --font-family-mono: 'monospace';
-            --spacing-unit: 1rem;
-            --border-radius: 8px;
+            --color-bg: #101014;
+            --color-surface: #1a1a20;
+            --color-primary: #00aaff;
+            --color-text: #e0e0e0;
+            --color-text-muted: #888888;
+            --font-family: 'Inter', sans-serif;
+            --grid-gap: 2rem;
         }
 
-        *, *::before, *::after {
+        * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
         html, body {
-            height: 100%;
             width: 100%;
-            overflow: hidden;
-        }
-
-        body {
-            font-family: var(--font-family-main);
+            height: 100%;
             background-color: var(--color-bg);
-            color: var(--color-text-primary);
+            color: var(--color-text);
+            font-family: var(--font-family);
+            font-size: 16px;
             line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
 
         #three-bg {
             position: fixed;
             top: 0;
             left: 0;
-            outline: none;
+            width: 100%;
+            height: 100%;
             z-index: -1;
+            opacity: 0.5;
         }
 
-        .container {
-            display: grid;
-            grid-template-columns: 1fr;
-            grid-template-rows: auto 1fr auto;
-            gap: calc(var(--spacing-unit) * 2);
-            padding: calc(var(--spacing-unit) * 2);
-            height: 100vh;
-            max-width: 1400px;
+        .site-header {
+            padding: 2rem var(--grid-gap);
+            text-align: center;
+        }
+        
+        .site-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            background: linear-gradient(90deg, var(--color-primary), #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .main-content {
+            padding: 0 var(--grid-gap);
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        .header {
-            grid-area: header;
-            text-align: center;
+        .grid-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--grid-gap);
+            align-items: start;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            letter-spacing: -1px;
-            color: var(--color-text-primary);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            color: var(--color-text-secondary);
-        }
-
-        .main {
-            grid-area: main;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .board {
-            width: 90vmin;
-            max-width: 600px;
-            aspect-ratio: 1 / 1;
-        }
-
-        .sidebar {
-            grid-area: sidebar;
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-unit);
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .panel {
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-unit);
-            flex-shrink: 0;
-        }
-        
-        .panel-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            margin-bottom: calc(var(--spacing-unit) / 2);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .panel-content {
-            font-size: 1rem;
-        }
-
-        .code-block {
-            background-color: var(--color-bg);
-            padding: calc(var(--spacing-unit) / 2);
-            border-radius: 4px;
-            font-family: var(--font-family-mono);
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            min-height: 2.5em;
-        }
-
-        .controls {
-            display: flex;
-            gap: var(--spacing-unit);
-            margin-top: var(--spacing-unit);
-        }
-
-        .btn {
-            flex-grow: 1;
-            padding: 12px 20px;
-            font-size: 1rem;
-            font-weight: 600;
-            font-family: var(--font-family-main);
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            background-color: var(--color-primary);
-            color: #ffffff;
-        }
-
-        .btn:hover {
-            background-color: #9333ea;
-        }
-
-        .btn:nth-child(2) {
-            background-color: var(--color-surface);
-            color: var(--color-text-primary);
-            border: 1px solid var(--color-border);
-        }
-
-        .btn:nth-child(2):hover {
-             background-color: #333333;
-        }
-
-        .footer {
-            grid-area: footer;
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--color-text-secondary);
-            padding: var(--spacing-unit) 0;
-            display: none; /* Hidden on small screens to save space */
-        }
-        
-        .highlight-white { background-color: #a9a9a9; }
-        .highlight-black { background-color: #696969; }
-
-        @media (min-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr 2fr 1fr;
-                grid-template-rows: auto 1fr;
-                grid-template-areas:
-                    ". header ."
-                    "sidebar main footer";
-                align-items: center;
-            }
-
-            .header { text-align: left; }
-            .board { width: 100%; max-width: 70vh; max-height: 70vh; }
-            .footer { grid-column: main; text-align: center; display: block; }
-        }
-
-        /* Initial animation states */
-        .anim-item {
+        .board-container {
+            width: 100%;
             opacity: 0;
             transform: translateY(20px);
+        }
+
+        #myBoard {
+            width: 100%;
+            max-width: 70vh; /* Ensure board fits viewport height */
+            margin: 0 auto;
+            border: 2px solid var(--color-surface);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .controls-container {
+            background-color: var(--color-surface);
+            padding: 2rem;
+            border-radius: 8px;
+            height: 100%;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .controls-container h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #status {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            min-height: 1.5em;
+        }
+        
+        #pgn {
+            font-family: monospace;
+            background-color: var(--color-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            color: var(--color-text-muted);
+            border: 1px solid #333;
+            margin-bottom: 1.5rem;
+        }
+
+        #reset-button {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: var(--color-primary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        #reset-button:hover {
+            background-color: #0077b3;
+            transform: translateY(-2px);
+        }
+
+        .info-section {
+            padding: 4rem var(--grid-gap);
+            max-width: 900px;
+            margin: 4rem auto 0;
+            text-align: center;
+        }
+        
+        .info-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-section p {
+            font-size: 1.1rem;
+            color: var(--color-text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .site-footer {
+            padding: 2rem var(--grid-gap);
+            text-align: center;
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+            #myBoard {
+                max-width: 100%;
+                width: 90vw;
+            }
         }
     </style>
 </head>
 <body>
-
     <canvas id="three-bg"></canvas>
 
-    <div class="container">
-        <header class="header anim-item">
-            <h1>Web Chess Arena</h1>
-            <p>A minimalist chess engine interface.</p>
-        </header>
+    <header class="site-header">
+        <h1>Quantum Chess Arena</h1>
+    </header>
 
-        <main class="main anim-item">
-            <div id="board" class="board"></div>
-        </main>
-
-        <aside class="sidebar anim-item">
-            <div class="panel">
-                <h2 class="panel-title">Status</h2>
-                <div id="status" class="panel-content" aria-live="polite">White to move.</div>
+    <main class="main-content">
+        <div class="grid-container">
+            <div class="board-container">
+                <div id="myBoard"></div>
             </div>
-            <div class="panel">
-                <h2 class="panel-title">FEN</h2>
-                <div class="panel-content code-block">
-                    <code id="fen"></code>
-                </div>
+            <div class="controls-container">
+                <h2>Status</h2>
+                <p id="status"></p>
+                <h2>History (PGN)</h2>
+                <pre id="pgn"></pre>
+                <button id="reset-button">New Game</button>
             </div>
-            <div class="panel">
-                <h2 class="panel-title">PGN</h2>
-                <div class="panel-content code-block">
-                    <code id="pgn"></code>
-                </div>
-            </div>
-            <div class="controls anim-item">
-                <button id="reset-button" class="btn">New Game</button>
-                <button id="undo-button" class="btn">Undo Move</button>
-            </div>
-            <footer class="footer anim-item">
-                <p>MIT License</p>
-            </footer>
-        </aside>
-    </div>
+        </div>
+    </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhG9fe1gRTgsbUDZ5dIryA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js" integrity="sha512-f8mwTB+Bs8a5c46DEm7HQLcJuHMBaASP/AOKK5bkHyQa2Iro2ysPOBOBGvflrE4M7mvPoPXabaxNhKRKQQRKwA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha512-z4OUqw38qNLpn1libAN9BsoDx6nbNFio5lA6CuTp9NlK83b89hgyCVq+N5FdBJptINztxn1Z3SaKSKUS5UP60Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha384-ZvpUoO/+PpLXR1sSrWXhdO/5RClRgZosTJHFStSzVMVdIyoAdipGgnlA/Vkn9OJ/" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js" integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" integrity="sha512-xRllwz2IgdRxWPdhJhz_iSg2vkpRM2MIWC5RSVrdjOUmqgLryfGikh2CX/G2Q9l2O2C9PzL284weO1mP5K4xYw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    
-    <script id="vertexShader" type="x-shader/x-vertex">
-        varying vec2 vUv;
-        void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-    </script>
-    <script id="fragmentShader" type="x-shader/x-fragment">
-        uniform float u_time;
-        uniform vec2 u_resolution;
-        varying vec2 vUv;
-        
-        float random(vec2 st) {
-            return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-        }
+    <section class="info-section">
+      <div class="fade-in">
+        <h2>The Engine</h2>
+        <p>This arena is powered by a JavaScript-based chess engine employing a Minimax algorithm with Alpha-Beta pruning to determine the optimal move. It evaluates board positions using piece-square tables and material advantage.</p>
+      </div>
+    </section>
 
-        float noise(vec2 st) {
-            vec2 i = floor(st);
-            vec2 f = fract(st);
-            vec2 u = f * f * (3.0 - 2.0 * f);
-            return mix(mix(random(i + vec2(0.0, 0.0)), random(i + vec2(1.0, 0.0)), u.x),
-                       mix(random(i + vec2(0.0, 1.0)), random(i + vec2(1.0, 1.0)), u.x), u.y);
-        }
+    <section class="info-section">
+       <div class="fade-in">
+        <h2>Swiss Design</h2>
+        <p>The interface is crafted with principles of Swiss grid typography, emphasizing clarity, rhythm, and a clean hierarchical structure for an uncluttered and premium user experience.</p>
+      </div>
+    </section>
 
-        void main() {
-            vec2 st = gl_FragCoord.xy / u_resolution.xy;
-            st.x *= u_resolution.x / u_resolution.y;
+    <footer class="site-footer">
+        <p>&copy; 2024. Built with Three.js, GSAP, and a dash of logic.</p>
+    </footer>
 
-            float n = noise(vUv * 4.0 + u_time * 0.05);
-            gl_FragColor = vec4(vec3(n * 0.05 + 0.05), 1.0);
-        }
-    </script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" 
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js" 
+            integrity="sha512-SBiSdWQyY1VP9qftZSSo2vrqDofIkTz1d5wU3Zma9yvpyy22Hb27Q91tq2H3L3+t33MvjvUv21sCFAfYfT3fTw==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" 
+            integrity="sha512-J350eCFoD4gTMA6Q7VANTrEUTFGjKNImcpenXF2iibV/QSoRepN7+yQCafpI3T4Cr4MghM9UoPmmDkLhWGPPHA==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" 
+            integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRNebz+yOcc5TQr/zIAlYTpIoiPnC6v8+SQbHzXg9W5kGD09zgp7A==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" 
+            integrity="sha512-z4OUqw38qNLpn1libAN9BsoDx6nbNFio5lA6CuTp9NlK83b89hgyCVq+N5FdBJptINztxn1Z3SaKSKUS5UP60Q==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js" 
+            integrity="sha384-8Vi8VHwn3vjQ9eUHUxexJeJGNxpLkL203JkX8DtvRxD8IZIHI1i5IKB2e2pgT2x6" 
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" 
+            integrity="sha512-xRllwz2gdZciIB+AkEbeq+gVhX8VB8XsfqeFbUh+SzHlN96dEduwtTuVuc2u9EROlmW9+yhRlxjif66ORpsgVA==" 
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
             // --- Three.js Background ---
-            let scene, camera, renderer, material, mesh;
+            let scene, camera, renderer, stars;
 
             function initThree() {
-                const canvas = document.getElementById('three-bg');
                 scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.z = 2;
+                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+                camera.position.z = 1;
+                camera.rotation.x = Math.PI / 2;
 
-                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                
-                const geometry = new THREE.PlaneGeometry(5, 5);
-                material = new THREE.ShaderMaterial({
-                    uniforms: {
-                        u_time: { value: 0.0 },
-                        u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
-                    },
-                    vertexShader: document.getElementById('vertexShader').textContent,
-                    fragmentShader: document.getElementById('fragmentShader').textContent
+                renderer = new THREE.WebGLRenderer({
+                    canvas: document.getElementById('three-bg'),
+                    antialias: true,
                 });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x000000, 0); 
 
-                mesh = new THREE.Mesh(geometry, material);
-                scene.add(mesh);
+                const starGeo = new THREE.BufferGeometry();
+                const starVertices = [];
+                for (let i = 0; i < 6000; i++) {
+                    const x = (Math.random() - 0.5) * 2000;
+                    const y = (Math.random() - 0.5) * 2000;
+                    const z = (Math.random() - 0.5) * 2000;
+                    starVertices.push(x, y, z);
+                }
+                starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
                 
-                animate();
-            }
+                let sprite = new THREE.TextureLoader().load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABl0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjUuMTAw9HKhAAAAXklEQVQ4T2NkoBAwUqifgboGzJy76AIjE3tXEZ8LsoBj2s4g2f8z284g2f8zY9f6/1/Y2vj/f2M7++8f2L2+SzC4d23Dx8+mXv97uPGd5cN7z7a/Q8QYAAAKvU0Wd2B23gAAAAASUVORK5CYII=');
+                let starMaterial = new THREE.PointsMaterial({
+                    color: 0xaaaaaa,
+                    size: 0.7,
+                    map: sprite,
+                    transparent: true,
+                });
+                stars = new THREE.Points(starGeo, starMaterial);
+                scene.add(stars);
 
-            function animate() {
-                requestAnimationFrame(animate);
-                material.uniforms.u_time.value += 0.01;
-                renderer.render(scene, camera);
+                window.addEventListener('resize', onWindowResize, false);
+                animate();
             }
 
             function onWindowResize() {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
-                material.uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight);
             }
-            window.addEventListener('resize', onWindowResize, false);
+
+            function animate() {
+                stars.rotation.y += 0.0001;
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            }
             
             initThree();
 
             // --- GSAP & Anime.js Animations ---
-            gsap.from('.anim-item', {
-                duration: 0.8,
-                y: 30,
-                opacity: 0,
-                stagger: 0.15,
-                ease: 'power3.out',
-                delay: 0.2
-            });
+            function initAnimations() {
+                gsap.registerPlugin(ScrollTrigger);
 
-            document.querySelectorAll('.btn').forEach(button => {
-                button.addEventListener('mouseenter', () => {
-                    anime({ targets: button, scale: 1.05, duration: 300, easing: 'easeOutQuad' });
+                const tl = gsap.timeline();
+                tl.to('.site-header h1', { y: 0, opacity: 1, duration: 1, ease: 'power3.out' })
+                  .to('.board-container', { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.6')
+                  .to('.controls-container', { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.6');
+
+                gsap.utils.toArray('.fade-in').forEach(el => {
+                    gsap.fromTo(el, 
+                        { opacity: 0, y: 50 },
+                        {
+                            opacity: 1,
+                            y: 0,
+                            duration: 1,
+                            scrollTrigger: {
+                                trigger: el,
+                                start: 'top 85%',
+                                toggleActions: 'play none none none',
+                            }
+                        }
+                    );
                 });
-                button.addEventListener('mouseleave', () => {
-                    anime({ targets: button, scale: 1, duration: 300, easing: 'easeOutQuad' });
+
+                document.querySelectorAll('#reset-button').forEach(button => {
+                    button.addEventListener('mouseenter', () => {
+                        anime({
+                            targets: button,
+                            scale: 1.05,
+                            duration: 200,
+                            easing: 'easeOutQuad'
+                        });
+                    });
+                    button.addEventListener('mouseleave', () => {
+                        anime({
+                            targets: button,
+                            scale: 1,
+                            duration: 200,
+                            easing: 'easeOutQuad'
+                        });
+                    });
                 });
-            });
+            }
+
+            initAnimations();
 
             // --- Chess Game Logic ---
             let board = null;
             const game = new Chess();
             const $status = $('#status');
-            const $fen = $('#fen');
             const $pgn = $('#pgn');
-            let moveHistory = [];
+            let playerColor = 'w'; // Player is always White
 
-            const pieceValues = { 'p': 10, 'n': 30, 'b': 30, 'r': 50, 'q': 90, 'k': 900 };
+            function updateStatus() {
+                let status = '';
+                const moveColor = game.turn() === 'w' ? 'White' : 'Black';
 
-            const pst_w = {
-                'p': [0, 0, 0, 0, 0, 0, 0, 0, 5, 10, 10, -20, -20, 10, 10, 5, 5, -5, -10, 0, 0, -10, -5, 5, 0, 0, 0, 20, 20, 0, 0, 0, 5, 5, 10, 25, 25, 10, 5, 5, 10, 10, 20, 30, 30, 20, 10, 10, 50, 50, 50, 50, 50, 50, 50, 50, 0, 0, 0, 0, 0, 0, 0, 0],
-                'n': [-50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 5, 5, 0, -20, -40, -30, 5, 10, 15, 15, 10, 5, -30, -30, 0, 15, 20, 20, 15, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0, 10, 15, 15, 10, 0, -30, -40, -20, 0, 0, 0, 0, -20, -40, -50, -40, -30, -30, -30, -30, -40, -50],
-                'b': [-20, -10, -10, -10, -10, -10, -10, -20, -10, 5, 0, 0, 0, 0, 5, -10, -10, 10, 10, 10, 10, 10, 10, -10, -10, 0, 10, 10, 10, 10, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 5, 10, 10, 5, 0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -10, -10, -10, -10, -20],
-                'r': [0, 0, 0, 5, 5, 0, 0, 0, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 5, 10, 10, 10, 10, 10, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0],
-                'q': [-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 5, 0, 0, 0, 0, -10, -10, 5, 5, 5, 5, 5, 0, -10, 0, 0, 5, 5, 5, 5, 0, -5, -5, 0, 5, 5, 5, 5, 0, -5, -10, 0, 5, 0, 0, 0, 0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10, -20],
-                'k': [20, 30, 10, 0, 0, 10, 30, 20, 20, 20, 0, 0, 0, 0, 20, 20, -10, -20, -20, -20, -20, -20, -20, -10, -20, -30, -30, -40, -40, -30, -30, -20, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30]
-            };
-
-            const pst_b = {
-                'p': pst_w['p'].slice().reverse(),
-                'n': pst_w['n'].slice().reverse(),
-                'b': pst_w['b'].slice().reverse(),
-                'r': pst_w['r'].slice().reverse(),
-                'q': pst_w['q'].slice().reverse(),
-                'k': pst_w['k'].slice().reverse()
-            };
-
-            function evaluateBoard(board, color) {
-                let totalEvaluation = 0;
-                for (let i = 0; i < 8; i++) {
-                    for (let j = 0; j < 8; j++) {
-                        totalEvaluation += getPieceValue(board[i][j], i, j);
-                    }
-                }
-                return totalEvaluation * (color === 'w' ? 1 : -1);
-            }
-
-            function getPieceValue(piece, x, y) {
-                if (piece === null) return 0;
-                const pst = piece.color === 'w' ? pst_w : pst_b;
-                const absoluteValue = pieceValues[piece.type] + pst[piece.type][y * 8 + x];
-                return piece.color === 'w' ? absoluteValue : -absoluteValue;
-            }
-
-            function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
-                if (depth === 0) {
-                    return -evaluateBoard(game.board(), game.turn());
-                }
-
-                const newGameMoves = game.moves();
-                let bestMove;
-
-                if (isMaximizingPlayer) {
-                    bestMove = -Infinity;
-                    for (let i = 0; i < newGameMoves.length; i++) {
-                        game.move(newGameMoves[i]);
-                        bestMove = Math.max(bestMove, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
-                        game.undo();
-                        alpha = Math.max(alpha, bestMove);
-                        if (beta <= alpha) {
-                            return bestMove;
-                        }
-                    }
+                if (game.in_checkmate()) {
+                    status = 'Game over, ' + moveColor + ' is in checkmate.';
+                } else if (game.in_draw()) {
+                    status = 'Game over, drawn position.';
                 } else {
-                    bestMove = Infinity;
-                    for (let i = 0; i < newGameMoves.length; i++) {
-                        game.move(newGameMoves[i]);
-                        bestMove = Math.min(bestMove, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
-                        game.undo();
-                        beta = Math.min(beta, bestMove);
-                        if (beta <= alpha) {
-                            return bestMove;
+                    status = moveColor + "'s turn to move";
+                    if (game.in_check()) {
+                        status += ', ' + moveColor + ' is in check.';
+                    }
+                }
+                
+                const oldStatus = $status.text();
+                if(oldStatus !== status) {
+                    anime({
+                        targets: '#status',
+                        opacity: [1, 0],
+                        duration: 200,
+                        easing: 'easeInOutQuad',
+                        complete: function() {
+                            $status.text(status);
+                            anime({
+                                targets: '#status',
+                                opacity: [0, 1],
+                                duration: 200,
+                                easing: 'easeInOutQuad'
+                            });
                         }
-                    }
+                    });
                 }
-                return bestMove;
-            }
-
-            function getBestMove(game) {
-                const newGameMoves = game.moves();
-                let bestMove = -Infinity;
-                let bestMoveFound;
-                const depth = 3;
-
-                for (let i = 0; i < newGameMoves.length; i++) {
-                    const newGameMove = newGameMoves[i];
-                    game.move(newGameMove);
-                    const value = minimax(game, depth - 1, -Infinity, Infinity, false);
-                    game.undo();
-                    if (value >= bestMove) {
-                        bestMove = value;
-                        bestMoveFound = newGameMove;
-                    }
-                }
-                return bestMoveFound;
-            }
-
-            function makeAIMove() {
-                const move = getBestMove(game);
-                game.move(move);
-                board.position(game.fen());
-                moveHistory.push(move);
-                updateStatus();
+                $pgn.html(game.pgn());
+                $pgn.scrollTop($pgn[0].scrollHeight);
             }
 
             function onDragStart(source, piece, position, orientation) {
-                if (game.game_over()) return false;
-                if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-                    (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                if (game.game_over() === true ||
+                    (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                    (game.turn() === 'b' && piece.search(/^w/) !== -1) ||
+                    game.turn() !== playerColor) {
                     return false;
                 }
             }
@@ -465,55 +414,165 @@
                 const move = game.move({
                     from: source,
                     to: target,
-                    promotion: 'q'
+                    promotion: 'q' 
                 });
 
                 if (move === null) return 'snapback';
-                moveHistory.push(move);
+
                 updateStatus();
-                window.setTimeout(makeAIMove, 250);
+                window.setTimeout(makeBestMove, 250);
             }
 
             function onSnapEnd() {
                 board.position(game.fen());
             }
 
-            function updateStatus() {
-                let status = '';
-                const moveColor = game.turn() === 'b' ? 'Black' : 'White';
-
-                if (game.in_checkmate()) {
-                    status = `Game over, ${moveColor} is in checkmate.`;
-                } else if (game.in_draw()) {
-                    status = 'Game over, drawn position.';
-                } else {
-                    status = `${moveColor} to move.`;
-                    if (game.in_check()) {
-                        status += ` ${moveColor} is in check.`;
-                    }
-                }
-
-                $status.html(status);
-                $fen.text(game.fen());
-                $pgn.html(game.pgn());
-            }
-            
-            function resetGame() {
-                game.reset();
-                board.start();
-                moveHistory = [];
-                updateStatus();
-            }
-
-            function undoMove() {
-                game.undo();
-                if (game.turn() !== 'w') {
-                    game.undo();
-                }
+            function makeBestMove() {
+                if (game.game_over()) return;
+                
+                const bestMove = calculateBestMove(game);
+                game.move(bestMove);
                 board.position(game.fen());
                 updateStatus();
             }
+
+            const pieceValue = { 'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'k': 20000 };
+            const pst = {
+                'p': [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [50, 50, 50, 50, 50, 50, 50, 50],
+                    [10, 10, 20, 30, 30, 20, 10, 10],
+                    [5, 5, 10, 25, 25, 10, 5, 5],
+                    [0, 0, 0, 20, 20, 0, 0, 0],
+                    [5, -5, -10, 0, 0, -10, -5, 5],
+                    [5, 10, 10, -20, -20, 10, 10, 5],
+                    [0, 0, 0, 0, 0, 0, 0, 0]
+                ],
+                'n': [
+                    [-50, -40, -30, -30, -30, -30, -40, -50],
+                    [-40, -20, 0, 0, 0, 0, -20, -40],
+                    [-30, 0, 10, 15, 15, 10, 0, -30],
+                    [-30, 5, 15, 20, 20, 15, 5, -30],
+                    [-30, 0, 15, 20, 20, 15, 0, -30],
+                    [-30, 5, 10, 15, 15, 10, 5, -30],
+                    [-40, -20, 0, 5, 5, 0, -20, -40],
+                    [-50, -40, -30, -30, -30, -30, -40, -50]
+                ],
+                'b': [
+                    [-20, -10, -10, -10, -10, -10, -10, -20],
+                    [-10, 0, 0, 0, 0, 0, 0, -10],
+                    [-10, 0, 5, 10, 10, 5, 0, -10],
+                    [-10, 5, 5, 10, 10, 5, 5, -10],
+                    [-10, 0, 10, 10, 10, 10, 0, -10],
+                    [-10, 10, 10, 10, 10, 10, 10, -10],
+                    [-10, 5, 0, 0, 0, 0, 5, -10],
+                    [-20, -10, -10, -10, -10, -10, -10, -20]
+                ],
+                'r': [
+                    [0, 0, 0, 0, 0, 0, 0, 0],
+                    [5, 10, 10, 10, 10, 10, 10, 5],
+                    [-5, 0, 0, 0, 0, 0, 0, -5],
+                    [-5, 0, 0, 0, 0, 0, 0, -5],
+                    [-5, 0, 0, 0, 0, 0, 0, -5],
+                    [-5, 0, 0, 0, 0, 0, 0, -5],
+                    [-5, 0, 0, 0, 0, 0, 0, -5],
+                    [0, 0, 0, 5, 5, 0, 0, 0]
+                ],
+                'q': [
+                    [-20, -10, -10, -5, -5, -10, -10, -20],
+                    [-10, 0, 0, 0, 0, 0, 0, -10],
+                    [-10, 0, 5, 5, 5, 5, 0, -10],
+                    [-5, 0, 5, 5, 5, 5, 0, -5],
+                    [0, 0, 5, 5, 5, 5, 0, -5],
+                    [-10, 5, 5, 5, 5, 5, 0, -10],
+                    [-10, 0, 5, 0, 0, 0, 0, -10],
+                    [-20, -10, -10, -5, -5, -10, -10, -20]
+                ],
+                 'k': [
+                    [-30, -40, -40, -50, -50, -40, -40, -30],
+                    [-30, -40, -40, -50, -50, -40, -40, -30],
+                    [-30, -40, -40, -50, -50, -40, -40, -30],
+                    [-30, -40, -40, -50, -50, -40, -40, -30],
+                    [-20, -30, -30, -40, -40, -30, -30, -20],
+                    [-10, -20, -20, -20, -20, -20, -20, -10],
+                    [20, 20, 0, 0, 0, 0, 20, 20],
+                    [20, 30, 10, 0, 0, 10, 30, 20]
+                ]
+            };
+
+            function evaluateBoard(board, color) {
+                let totalEvaluation = 0;
+                for (let i = 0; i < 8; i++) {
+                    for (let j = 0; j < 8; j++) {
+                        const piece = board[i][j];
+                        if (piece) {
+                            const value = pieceValue[piece.type] + (piece.color === 'w' ? pst[piece.type][i][j] : -pst[piece.type][7 - i][j]);
+                            totalEvaluation += (piece.color === color ? value : -value);
+                        }
+                    }
+                }
+                return totalEvaluation;
+            }
+
+            function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
+                if (depth === 0) {
+                    return -evaluateBoard(game.board(), game.turn());
+                }
+
+                const newGameMoves = game.moves();
+                if (isMaximizingPlayer) {
+                    let bestVal = -Infinity;
+                    for (let i = 0; i < newGameMoves.length; i++) {
+                        game.move(newGameMoves[i]);
+                        bestVal = Math.max(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                        game.undo();
+                        alpha = Math.max(alpha, bestVal);
+                        if (beta <= alpha) {
+                            return bestVal;
+                        }
+                    }
+                    return bestVal;
+                } else {
+                    let bestVal = Infinity;
+                    for (let i = 0; i < newGameMoves.length; i++) {
+                        game.move(newGameMoves[i]);
+                        bestVal = Math.min(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                        game.undo();
+                        beta = Math.min(beta, bestVal);
+                        if (beta <= alpha) {
+                            return bestVal;
+                        }
+                    }
+                    return bestVal;
+                }
+            }
+
+            function calculateBestMove(gameInstance) {
+                const newGameMoves = gameInstance.moves();
+                let bestMove = null;
+                let bestValue = -Infinity;
+
+                for (let i = 0; i < newGameMoves.length; i++) {
+                    const newGameMove = newGameMoves[i];
+                    gameInstance.move(newGameMove);
+                    const boardValue = minimax(gameInstance, 2, -Infinity, Infinity, false);
+                    gameInstance.undo();
+                    if (boardValue > bestValue) {
+                        bestValue = boardValue;
+                        bestMove = newGameMove;
+                    }
+                }
+                return bestMove;
+            }
+
+            function resetGame() {
+                game.reset();
+                board.start();
+                updateStatus();
+            }
             
+            $('#reset-button').on('click', resetGame);
+
             const config = {
                 draggable: true,
                 position: 'start',
@@ -522,16 +581,10 @@
                 onSnapEnd: onSnapEnd,
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
             };
-            board = Chessboard('board', config);
-            $(window).on('resize', () => {
-                board.resize();
-            });
+            board = Chessboard('myBoard', config);
 
-            $('#reset-button').on('click', resetGame);
-            $('#undo-button').on('click', undoMove);
             updateStatus();
         });
     </script>
-
 </body>
 </html>
