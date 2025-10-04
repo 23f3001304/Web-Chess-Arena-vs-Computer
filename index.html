@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Arena</title>
+    <meta name="description" content="A modern web chess arena with a powerful onboard AI opponent.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <style>
+        :root {
+            --font-family: 'Inter', sans-serif;
+            --background-color: #f0f2f5;
+            --panel-background: #ffffff;
+            --text-color: #1a1a1a;
+            --text-muted: #6b7280;
+            --primary-color: #007bff;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --board-light: #f0d9b5;
+            --board-dark: #b58863;
+            --highlight-color: rgba(34, 139, 34, 0.5);
+        }
+
+        .dark-mode {
+            --background-color: #121212;
+            --panel-background: #1e1e1e;
+            --text-color: #e0e0e0;
+            --text-muted: #888888;
+            --primary-color: #4dabf7;
+            --border-color: #333333;
+            --board-light: #8ca2ad;
+            --board-dark: #5f7985;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .arena-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 24px;
+            padding: 24px;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .panel-left, .panel-center, .panel-right {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-center {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: var(--panel-background);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        #board-container {
+            width: 100%;
+            max-width: calc(100vh - 80px);
+            aspect-ratio: 1 / 1;
+            position: relative;
+        }
+        
+        #board {
+            width: 100%;
+        }
+
+        .highlight-square {
+            position: absolute;
+            width: 12.5%;
+            height: 12.5%;
+            background-color: var(--highlight-color);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .move-history {
+            height: 300px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+        
+        .move-history ol {
+            list-style: none;
+            counter-reset: move-counter;
+        }
+        
+        .move-history li {
+            counter-increment: move-counter;
+            display: grid;
+            grid-template-columns: 30px 1fr 1fr;
+            padding: 4px 0;
+        }
+        
+        .move-history li::before {
+            content: counter(move-counter) ".";
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        button, input, select {
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        #status {
+            font-weight: 500;
+            min-height: 24px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--panel-background);
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.3s;
+        }
+        
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 16px;
+        }
+        
+        #promotion-dialog {
+            display: flex;
+            gap: 10px;
+        }
+
+        #promotion-dialog button {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .arena-container {
+                grid-template-columns: 240px 1fr 280px;
+                gap: 16px;
+                padding: 16px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .arena-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+                height: auto;
+            }
+            .panel-left, .panel-right {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+            #board-container {
+                max-width: 90vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="three-canvas"></div>
+    <main class="arena-container">
+        <div class="panel-left">
+            <div class="card">
+                <h3>Controls</h3>
+                <div class="form-group" style="gap: 10px;">
+                    <button id="new-game-btn">New Game</button>
+                    <button id="undo-btn">Undo Move</button>
+                    <div class="form-group">
+                        <label for="difficulty-slider">AI Difficulty (Depth)</label>
+                        <input type="range" id="difficulty-slider" min="1" max="5" value="3">
+                        <span id="difficulty-label">3</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Settings</h3>
+                <div class="form-group" style="gap: 10px;">
+                    <label for="theme-select">Theme</label>
+                    <select id="theme-select">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                    <button id="mute-btn">Mute Sounds</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-center">
+            <div id="board-container">
+                <div id="board" role="grid" aria-label="Chessboard"></div>
+            </div>
+        </div>
+
+        <div class="panel-right">
+            <div class="card">
+                <h3>Status</h3>
+                <p id="status">White to move.</p>
+            </div>
+            <div class="card" style="flex-grow: 1;">
+                <h3>Move History</h3>
+                <div id="move-history" class="move-history">
+                    <ol></ol>
+                </div>
+            </div>
+             <div class="card">
+                <h3>PGN/FEN</h3>
+                <div class="form-group" style="gap: 10px;">
+                    <textarea id="pgn-fen-input" rows="3" placeholder="Paste FEN or PGN to load"></textarea>
+                    <button id="load-pgn-btn">Load</button>
+                    <button id="export-pgn-btn">Export PGN</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="game-over-message"></h2>
+            <button id="modal-new-game-btn">Play Again</button>
+        </div>
+    </div>
+    
+    <div id="promotion-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Promote Pawn</h2>
+            <div id="promotion-dialog">
+                <button data-piece="q">&#9813;</button>
+                <button data-piece="r">&#9814;</button>
+                <button data-piece="b">&#9815;</button>
+                <button data-piece="n">&#9816;</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="move-sound" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU3LjgyLjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//"
+        crossorigin="anonymous"></audio>
+    <audio id="capture-sound" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU3LjgyLjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//"
+        crossorigin="anonymous"></audio>
+    <audio id="check-sound" src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU3LjgyLjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//"
+        crossorigin="anonymous"></audio>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Web Worker AI ---
+        const aiWorkerScript = `
+            self.importScripts('https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js');
+
+            const pieceValues = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+            const pst = {
+                p: [
+                    0,  0,  0,  0,  0,  0,  0,  0,
+                    50, 50, 50, 50, 50, 50, 50, 50,
+                    10, 10, 20, 30, 30, 20, 10, 10,
+                    5,  5, 10, 25, 25, 10,  5,  5,
+                    0,  0,  0, 20, 20,  0,  0,  0,
+                    5, -5,-10,  0,  0,-10, -5,  5,
+                    5, 10, 10,-20,-20, 10, 10,  5,
+                    0,  0,  0,  0,  0,  0,  0,  0
+                ],
+                n: [ -50,-40,-30,-30,-30,-30,-40,-50, -40,-20,  0,  0,  0,  0,-20,-40, -30,  0, 10, 15, 15, 10,  0,-30, -30,  5, 15, 20, 20, 15,  5,-30, -30,  0, 15, 20, 20, 15,  0,-30, -30,  5, 10, 15, 15, 10,  5,-30, -40,-20,  0,  5,  5,  0,-20,-40, -50,-40,-30,-30,-30,-30,-40,-50 ],
+                b: [ -20,-10,-10,-10,-10,-10,-10,-20, -10,  0,  0,  0,  0,  0,  0,-10, -10,  0,  5, 10, 10,  5,  0,-10, -10,  5,  5, 10, 10,  5,  5,-10, -10,  0, 10, 10, 10, 10,  0,-10, -10, 10, 10, 10, 10, 10, 10,-10, -10,  5,  0,  0,  0,  0,  5,-10, -20,-10,-10,-10,-10,-10,-10,-20 ],
+                r: [  0,  0,  0,  0,  0,  0,  0,  0,   5, 10, 10, 10, 10, 10, 10,  5,  -5,  0,  0,  0,  0,  0,  0, -5,  -5,  0,  0,  0,  0,  0,  0, -5,  -5,  0,  0,  0,  0,  0,  0, -5,  -5,  0,  0,  0,  0,  0,  0, -5,  -5,  0,  0,  0,  0,  0,  0, -5,   0,  0,  0,  5,  5,  0,  0,  0 ],
+                q: [ -20,-10,-10, -5, -5,-10,-10,-20, -10,  0,  0,  0,  0,  0,  0,-10, -10,  0,  5,  5,  5,  5,  0,-10,  -5,  0,  5,  5,  5,  5,  0, -5,   0,  0,  5,  5,  5,  5,  0, -5, -10,  5,  5,  5,  5,  5,  0,-10, -10,  0,  5,  0,  0,  0,  0,-10, -20,-10,-10, -5, -5,-10,-10,-20 ],
+                k: [ -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -30,-40,-40,-50,-50,-40,-40,-30, -20,-30,-30,-40,-40,-30,-30,-20, -10,-20,-20,-20,-20,-20,-20,-10,  20, 20,  0,  0,  0,  0, 20, 20,  20, 30, 10,  0,  0, 10, 30, 20 ],
+            };
+            
+            const evaluateBoard = (board) => {
+                let total = 0;
+                for (let i = 0; i < 8; i++) {
+                    for (let j = 0; j < 8; j++) {
+                        const piece = board[i][j];
+                        if (piece) {
+                            let value = pieceValues[piece.type];
+                            const isWhite = piece.color === 'w';
+                            const row = isWhite ? 7 - i : i;
+                            const col = j;
+                            const pstIndex = row * 8 + col;
+                            value += pst[piece.type][pstIndex];
+                            total += (isWhite ? value : -value);
+                        }
+                    }
+                }
+                return total;
+            };
+
+            const transpositionTable = new Map();
+
+            const search = (game, depth, alpha, beta, isMaximizingPlayer) => {
+                const fen = game.fen();
+                if (transpositionTable.has(fen) && transpositionTable.get(fen).depth >= depth) {
+                    return transpositionTable.get(fen).value;
+                }
+
+                if (depth === 0 || game.game_over()) {
+                    return evaluateBoard(game.board());
+                }
+
+                const moves = game.moves({ verbose: true });
+                moves.sort((a, b) => (b.flags.includes('c') ? 1 : 0) - (a.flags.includes('c') ? 1 : 0));
+
+                if (isMaximizingPlayer) {
+                    let maxEval = -Infinity;
+                    for (const move of moves) {
+                        game.move(move);
+                        const evaluation = search(game, depth - 1, alpha, beta, false);
+                        game.undo();
+                        maxEval = Math.max(maxEval, evaluation);
+                        alpha = Math.max(alpha, evaluation);
+                        if (beta <= alpha) break;
+                    }
+                    transpositionTable.set(fen, { depth, value: maxEval });
+                    return maxEval;
+                } else {
+                    let minEval = Infinity;
+                    for (const move of moves) {
+                        game.move(move);
+                        const evaluation = search(game, depth - 1, alpha, beta, true);
+                        game.undo();
+                        minEval = Math.min(minEval, evaluation);
+                        beta = Math.min(beta, evaluation);
+                        if (beta <= alpha) break;
+                    }
+                    transpositionTable.set(fen, { depth, value: minEval });
+                    return minEval;
+                }
+            };
+            
+            const findBestMove = (game, depth) => {
+                const moves = game.moves({ verbose: true });
+                let bestMove = null;
+                let bestValue = game.turn() === 'w' ? -Infinity : Infinity;
+                
+                for (const move of moves) {
+                    game.move(move);
+                    const boardValue = search(game, depth - 1, -Infinity, Infinity, game.turn() === 'w');
+                    game.undo();
+                    if (game.turn() === 'w') {
+                        if (boardValue > bestValue) {
+                            bestValue = boardValue;
+                            bestMove = move;
+                        }
+                    } else {
+                        if (boardValue < bestValue) {
+                            bestValue = boardValue;
+                            bestMove = move;
+                        }
+                    }
+                }
+                return bestMove;
+            };
+
+            self.onmessage = (e) => {
+                const { fen, depth } = e.data;
+                const game = new Chess(fen);
+                const bestMove = findBestMove(game, depth);
+                self.postMessage({ bestMove });
+            };
+        `;
+        const workerBlob = new Blob([aiWorkerScript], { type: 'application/javascript' });
+        const workerUrl = URL.createObjectURL(workerBlob);
+        const aiWorker = new Worker(workerUrl);
+
+        // --- Three.js Background ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('three-canvas').appendChild(renderer.domElement);
+        
+        const particlesGeometry = new THREE.BufferGeometry;
+        const particlesCnt = 5000;
+        const posArray = new Float32Array(particlesCnt * 3);
+        for (let i = 0; i < particlesCnt * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 5;
+        }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({ size: 0.005, color: 0x888888 });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        camera.position.z = 2;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particlesMesh.rotation.y += 0.0002;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- Game State ---
+        let board = null;
+        const game = new Chess();
+        let playerColor = 'w';
+        let promotionData = null;
+        let isMuted = false;
+
+        const moveSound = document.getElementById('move-sound');
+        const captureSound = document.getElementById('capture-sound');
+        const checkSound = document.getElementById('check-sound');
+        
+        const playSound = (sound) => {
+            if (isMuted) return;
+            sound.currentTime = 0;
+            sound.play().catch(e => console.error("Sound play failed:", e));
+        };
+
+        // --- UI Elements ---
+        const statusEl = document.getElementById('status');
+        const moveHistoryEl = document.getElementById('move-history').querySelector('ol');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const promotionModal = document.getElementById('promotion-modal');
+        const difficultySlider = document.getElementById('difficulty-slider');
+        const difficultyLabel = document.getElementById('difficulty-label');
+
+        // --- Core Functions ---
+        function updateStatus() {
+            let statusText = '';
+            const turn = game.turn() === 'w' ? 'White' : 'Black';
+
+            if (game.in_checkmate()) {
+                statusText = `Checkmate! ${turn === 'White' ? 'Black' : 'White'} wins.`;
+                gameOverMessage.textContent = statusText;
+                gameOverModal.classList.add('visible');
+            } else if (game.in_draw()) {
+                statusText = 'Draw!';
+                gameOverMessage.textContent = statusText;
+                gameOverModal.classList.add('visible');
+            } else {
+                statusText = `${turn} to move.`;
+                if (game.in_check()) {
+                    statusText += ' (in check)';
+                }
+            }
+            statusEl.textContent = statusText;
+        }
+
+        function updateMoveHistory() {
+            moveHistoryEl.innerHTML = '';
+            const history = game.history({ verbose: true });
+            for (let i = 0; i < history.length; i += 2) {
+                const li = document.createElement('li');
+                const whiteMove = history[i] ? history[i].san : '';
+                const blackMove = history[i+1] ? history[i+1].san : '';
+                li.innerHTML = `<span>${whiteMove}</span><span>${blackMove}</span>`;
+                moveHistoryEl.appendChild(li);
+            }
+            moveHistoryEl.parentElement.scrollTop = moveHistoryEl.parentElement.scrollHeight;
+        }
+        
+        function makeAIMove() {
+            const depth = parseInt(difficultySlider.value, 10);
+            statusEl.textContent = 'AI is thinking...';
+            aiWorker.postMessage({ fen: game.fen(), depth: depth });
+        }
+        
+        aiWorker.onmessage = (e) => {
+            const { bestMove } = e.data;
+            if (bestMove) {
+                const moveResult = game.move(bestMove);
+                board.position(game.fen());
+                handleMoveSound(moveResult);
+                updateStatus();
+                updateMoveHistory();
+            } else {
+                statusEl.textContent = "AI couldn't find a move.";
+            }
+        };
+        
+        function handleMoveSound(move) {
+            if (move.flags.includes('c') || move.flags.includes('e')) {
+                playSound(captureSound);
+            } else {
+                playSound(moveSound);
+            }
+            if (game.in_check() || game.in_checkmate()) {
+                playSound(checkSound);
+            }
+        }
+        
+        function onDragStart(source, piece) {
+            if (game.game_over() || game.turn() !== playerColor || piece.search(new RegExp(`^${playerColor === 'w' ? 'b' : 'w'}`)) !== -1) {
+                return false;
+            }
+        }
+
+        function onDrop(source, target) {
+            const move = {
+                from: source,
+                to: target,
+                promotion: 'q' 
+            };
+            
+            const legalMoves = game.moves({ verbose: true });
+            const isLegal = legalMoves.some(m => m.from === source && m.to === target);
+
+            if (!isLegal) return 'snapback';
+
+            const piece = game.get(source);
+            if (piece.type === 'p' && ((piece.color === 'w' && source === '7' && target === '8') || (piece.color === 'b' && source === '2' && target === '1'))) {
+                promotionData = move;
+                promotionModal.classList.add('visible');
+                return;
+            }
+            
+            const moveResult = game.move(move);
+            if (moveResult === null) return 'snapback';
+            
+            handleMoveSound(moveResult);
+            updateStatus();
+            updateMoveHistory();
+
+            window.setTimeout(makeAIMove, 250);
+        }
+        
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+        
+        function newGame() {
+            game.reset();
+            playerColor = 'w';
+            board.orientation('white');
+            board.position(game.fen());
+            updateStatus();
+            updateMoveHistory();
+            gameOverModal.classList.remove('visible');
+        }
+
+        // --- Chessboard Setup ---
+        const config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png'
+        };
+        board = Chessboard('board', config);
+        $(window).resize(board.resize);
+
+        // --- Event Listeners ---
+        document.getElementById('new-game-btn').addEventListener('click', newGame);
+        document.getElementById('modal-new-game-btn').addEventListener('click', newGame);
+        
+        document.getElementById('undo-btn').addEventListener('click', () => {
+            game.undo(); // Undo AI move
+            game.undo(); // Undo player move
+            board.position(game.fen());
+            updateStatus();
+            updateMoveHistory();
+        });
+
+        document.getElementById('promotion-dialog').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                promotionData.promotion = e.target.dataset.piece;
+                const moveResult = game.move(promotionData);
+                handleMoveSound(moveResult);
+                board.position(game.fen());
+                updateStatus();
+                updateMoveHistory();
+                promotionModal.classList.remove('visible');
+                window.setTimeout(makeAIMove, 250);
+            }
+        });
+        
+        difficultySlider.addEventListener('input', () => {
+            difficultyLabel.textContent = difficultySlider.value;
+        });
+        
+        document.getElementById('theme-select').addEventListener('change', (e) => {
+            document.body.classList.toggle('dark-mode', e.target.value === 'dark');
+        });
+
+        document.getElementById('mute-btn').addEventListener('click', () => {
+            isMuted = !isMuted;
+            document.getElementById('mute-btn').textContent = isMuted ? 'Unmute Sounds' : 'Mute Sounds';
+        });
+
+        document.getElementById('load-pgn-btn').addEventListener('click', () => {
+            const pgnInput = document.getElementById('pgn-fen-input').value;
+            const loaded = game.load_pgn(pgnInput) || game.load(pgnInput);
+            if (loaded) {
+                board.position(game.fen());
+                updateStatus();
+                updateMoveHistory();
+            } else {
+                alert('Invalid PGN or FEN string.');
+            }
+        });
+
+        document.getElementById('export-pgn-btn').addEventListener('click', () => {
+            const pgn = game.pgn();
+            navigator.clipboard.writeText(pgn).then(() => {
+                alert('PGN copied to clipboard!');
+            }, () => {
+                alert('Failed to copy PGN.');
+            });
+        });
+
+        // --- Initialisation ---
+        updateStatus();
+    });
+    </script>
+</body>
+</html>
