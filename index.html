@@ -3,74 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Chess Arena</title>
+    <title>Aether Chess | AI Challenge</title>
+    <meta name="description" content="A modern, single-page web application to play chess against a configurable AI, built with Swiss grid typography, three.js visuals, and GSAP motion design.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
-          integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
-          crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" integrity="sha384-q94+BZGIugLrzMA0aGRvoLdb4vuygL+l/HDgcQcgPpL/MlJacunYAnTTyLrOA09i" crossorigin="anonymous">
+
     <style>
         :root {
-            --color-bg: #101014;
-            --color-surface: #1a1a20;
-            --color-primary: #00aaff;
-            --color-text: #e0e0e0;
-            --color-text-muted: #888888;
-            --font-family: 'Inter', sans-serif;
-            --grid-gap: 2rem;
+            --color-bg: #111113;
+            --color-surface: #1a1a1d;
+            --color-primary: #ffffff;
+            --color-secondary: #99999e;
+            --color-accent: #007bff;
+            --color-accent-hover: #0056b3;
+            --color-highlight-light: rgba(255, 229, 153, 0.7);
+            --color-highlight-dark: rgba(204, 163, 51, 0.7);
+            --font-family-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            --spacing-unit: 8px;
+            --grid-gap: calc(var(--spacing-unit) * 4);
+            --border-radius: 4px;
+            --transition-speed: 0.3s;
         }
 
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            font-family: var(--font-family);
-            font-size: 16px;
-            line-height: 1.6;
-            overflow-x: hidden;
+        html {
+            scroll-behavior: smooth;
         }
 
-        #three-bg {
+        body {
+            font-family: var(--font-family-main);
+            background-color: var(--color-bg);
+            color: var(--color-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--grid-gap);
+        }
+
+        header {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.5;
+            padding: calc(var(--spacing-unit) * 3) 0;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(17, 17, 19, 0.8), rgba(17, 17, 19, 0));
         }
 
-        .site-header {
-            padding: 2rem var(--grid-gap);
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .cta-button {
+            background-color: var(--color-accent);
+            color: var(--color-primary);
+            border: none;
+            padding: var(--spacing-unit) calc(var(--spacing-unit) * 3);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color var(--transition-speed) ease;
+        }
+
+        .cta-button:hover {
+            background-color: var(--color-accent-hover);
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
         }
-        
-        .site-header h1 {
-            font-size: 3rem;
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 10vw, 6rem);
             font-weight: 700;
-            letter-spacing: -0.05em;
-            background: linear-gradient(90deg, var(--color-primary), #ffffff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+            line-height: 1.1;
+            margin-bottom: var(--spacing-unit);
+            color: var(--color-primary);
+        }
+        
+        .hero .clip-text {
+            overflow: hidden;
+        }
+        
+        .hero .clip-text > div {
+            transform: translateY(110%);
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: var(--color-secondary);
+            margin-bottom: calc(var(--spacing-unit) * 4);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .scroll-down-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--color-secondary);
+            font-size: 0.8rem;
             opacity: 0;
-            transform: translateY(20px);
         }
 
-        .main-content {
-            padding: 0 var(--grid-gap);
-            max-width: 1200px;
-            margin: 0 auto;
+        main {
+            position: relative;
+            z-index: 1;
+            padding-top: 100vh;
         }
 
-        .grid-container {
+        .section {
+            padding: calc(var(--spacing-unit) * 10) 0;
+            border-top: 1px solid var(--color-surface);
+        }
+
+        .arena {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: var(--grid-gap);
@@ -79,499 +172,660 @@
 
         .board-container {
             width: 100%;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        #myBoard {
-            width: 100%;
-            max-width: 70vh; /* Ensure board fits viewport height */
-            margin: 0 auto;
-            border: 2px solid var(--color-surface);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .controls-container {
-            background-color: var(--color-surface);
-            padding: 2rem;
-            border-radius: 8px;
-            height: 100%;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        .controls-container h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--color-primary);
-            border-bottom: 1px solid #333;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        #status {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            min-height: 1.5em;
-        }
-        
-        #pgn {
-            font-family: monospace;
-            background-color: var(--color-bg);
-            padding: 1rem;
-            border-radius: 4px;
-            height: 200px;
-            overflow-y: auto;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            color: var(--color-text-muted);
-            border: 1px solid #333;
-            margin-bottom: 1.5rem;
-        }
-
-        #reset-button {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #fff;
-            background-color: var(--color-primary);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease;
-        }
-
-        #reset-button:hover {
-            background-color: #0077b3;
-            transform: translateY(-2px);
-        }
-
-        .info-section {
-            padding: 4rem var(--grid-gap);
-            max-width: 900px;
-            margin: 4rem auto 0;
-            text-align: center;
-        }
-        
-        .info-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .info-section p {
-            font-size: 1.1rem;
-            color: var(--color-text-muted);
             max-width: 600px;
             margin: 0 auto;
         }
+        
+        #gameBoard {
+            width: 100%;
+        }
 
-        .site-footer {
-            padding: 2rem var(--grid-gap);
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-            margin-top: 2rem;
+        .highlight-white {
+            box-shadow: inset 0 0 3px 3px var(--color-highlight-light);
+        }
+        .highlight-black {
+            box-shadow: inset 0 0 3px 3px var(--color-highlight-dark);
+        }
+
+        .game-panel {
+            background-color: var(--color-surface);
+            padding: calc(var(--spacing-unit) * 3);
+            border-radius: var(--border-radius);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-panel h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-unit);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: var(--spacing-unit);
         }
         
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
+        .game-panel h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-secondary);
+            margin-top: calc(var(--spacing-unit) * 2);
+            margin-bottom: var(--spacing-unit);
+        }
+
+        .status-box {
+            background-color: var(--color-bg);
+            padding: var(--spacing-unit) calc(var(--spacing-unit) * 2);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-unit);
+            font-family: monospace;
+            font-size: 0.9rem;
+            min-height: 4em;
+        }
+        
+        #status {
+            font-weight: bold;
+        }
+        
+        #thinking-indicator {
+            display: none;
+            margin-left: 8px;
+            color: var(--color-accent);
+        }
+        
+        #thinking-indicator::after {
+            content: '...';
+            display: inline-block;
+            animation: thinking-dots 1.4s infinite;
+        }
+        
+        @keyframes thinking-dots {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+
+        .info-group, .controls-group {
+            margin-bottom: calc(var(--spacing-unit) * 2);
+        }
+        
+        .info-group pre, .info-group input {
+            width: 100%;
+            background-color: var(--color-bg);
+            padding: var(--spacing-unit);
+            border-radius: var(--border-radius);
+            border: 1px solid transparent;
+            color: var(--color-secondary);
+            font-family: monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .info-group input {
+            color: var(--color-primary);
+        }
+        
+        .info-group input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+        }
+
+        .controls-group .button-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: var(--spacing-unit);
+        }
+        
+        .control-button {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-surface);
+            color: var(--color-primary);
+            padding: var(--spacing-unit) calc(var(--spacing-unit) * 2);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            text-align: center;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .control-button:hover {
+            background-color: var(--color-accent);
+            border-color: var(--color-accent);
+        }
+        
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+        
+        .select-wrapper::after {
+            content: '▼';
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--color-secondary);
+            font-size: 0.8rem;
+        }
+
+        #difficulty, #player-side {
+            width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: calc(var(--spacing-unit) * 4) 0;
+            color: var(--color-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--color-surface);
+        }
+        
+        footer a {
+            color: var(--color-accent);
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
         }
 
         @media (max-width: 900px) {
-            .grid-container {
+            .arena {
                 grid-template-columns: 1fr;
             }
-            #myBoard {
+            .board-container {
                 max-width: 100%;
-                width: 90vw;
+                margin-bottom: var(--grid-gap);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            .container {
+                padding: 0 calc(var(--spacing-unit) * 2);
             }
         }
     </style>
 </head>
 <body>
-    <canvas id="three-bg"></canvas>
 
-    <header class="site-header">
-        <h1>Quantum Chess Arena</h1>
+    <canvas id="bg-canvas"></canvas>
+
+    <header>
+        <div class="container header-content">
+            <a href="#" class="logo">Aether Chess</a>
+            <a href="#arena" class="cta-button">Play Now</a>
+        </div>
     </header>
 
-    <main class="main-content">
-        <div class="grid-container">
-            <div class="board-container">
-                <div id="myBoard"></div>
-            </div>
-            <div class="controls-container">
-                <h2>Status</h2>
-                <p id="status"></p>
-                <h2>History (PGN)</h2>
-                <pre id="pgn"></pre>
-                <button id="reset-button">New Game</button>
-            </div>
+    <section class="hero">
+        <div class="hero-content">
+            <h1 aria-label="Strategic Mind">
+                <div class="clip-text"><div>Strategic</div></div>
+                <div class="clip-text"><div>Mind</div></div>
+            </h1>
+            <p>Challenge a thinking machine. A classic game of chess against a powerful minimax AI, brought to life with modern web technology.</p>
         </div>
+        <div class="scroll-down-indicator">Scroll Down</div>
+    </section>
+
+    <main>
+        <section id="arena" class="section">
+            <div class="container arena">
+                <div class="board-container">
+                    <div id="gameBoard"></div>
+                </div>
+                <div class="game-panel">
+                    <h2>Game State</h2>
+                    <div class="status-box">
+                        <span id="status"></span>
+                        <span id="thinking-indicator">Thinking</span>
+                    </div>
+
+                    <div class="controls-group">
+                        <h3>Controls</h3>
+                        <div class="button-row">
+                            <button id="start-button" class="control-button">New Game</button>
+                            <button id="undo-button" class="control-button">Undo</button>
+                        </div>
+                        <div class="select-wrapper" style="margin-top: 8px;">
+                             <select id="player-side" class="control-button">
+                                <option value="w">Play as White</option>
+                                <option value="b">Play as Black</option>
+                            </select>
+                        </div>
+                        <div class="select-wrapper" style="margin-top: 8px;">
+                            <select id="difficulty" class="control-button">
+                                <option value="1">Easy (Depth 1)</option>
+                                <option value="2">Medium (Depth 2)</option>
+                                <option value="3" selected>Hard (Depth 3)</option>
+                                <option value="4">Expert (Depth 4)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="info-group">
+                        <h3>FEN</h3>
+                        <input type="text" id="fen" />
+                    </div>
+
+                    <div class="info-group">
+                        <h3>PGN</h3>
+                        <pre id="pgn"></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <footer class="section">
+            <div class="container">
+                <p>Built by a Senior Front-End Engineer for a code generation task.</p>
+                <p>Utilizing <a href="https://github.com/jhlywa/chess.js/" target="_blank" rel="noopener noreferrer">chess.js</a> and <a href="https://github.com/oakmac/chessboardjs" target="_blank" rel="noopener noreferrer">chessboard.js</a>. MIT License.</p>
+            </div>
+        </footer>
     </main>
-
-    <section class="info-section">
-      <div class="fade-in">
-        <h2>The Engine</h2>
-        <p>This arena is powered by a JavaScript-based chess engine employing a Minimax algorithm with Alpha-Beta pruning to determine the optimal move. It evaluates board positions using piece-square tables and material advantage.</p>
-      </div>
-    </section>
-
-    <section class="info-section">
-       <div class="fade-in">
-        <h2>Swiss Design</h2>
-        <p>The interface is crafted with principles of Swiss grid typography, emphasizing clarity, rhythm, and a clean hierarchical structure for an uncluttered and premium user experience.</p>
-      </div>
-    </section>
-
-    <footer class="site-footer">
-        <p>&copy; 2024. Built with Three.js, GSAP, and a dash of logic.</p>
-    </footer>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
-            integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" 
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js" 
-            integrity="sha512-SBiSdWQyY1VP9qftZSSo2vrqDofIkTz1d5wU3Zma9yvpyy22Hb27Q91tq2H3L3+t33MvjvUv21sCFAfYfT3fTw==" 
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" 
-            integrity="sha512-J350eCFoD4gTMA6Q7VANTrEUTFGjKNImcpenXF2iibV/QSoRepN7+yQCafpI3T4Cr4MghM9UoPmmDkLhWGPPHA==" 
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" 
-            integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRNebz+yOcc5TQr/zIAlYTpIoiPnC6v8+SQbHzXg9W5kGD09zgp7A==" 
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" 
-            integrity="sha512-z4OUqw38qNLpn1libAN9BsoDx6nbNFio5lA6CuTp9NlK83b89hgyCVq+N5FdBJptINztxn1Z3SaKSKUS5UP60Q==" 
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js" 
-            integrity="sha384-8Vi8VHwn3vjQ9eUHUxexJeJGNxpLkL203JkX8DtvRxD8IZIHI1i5IKB2e2pgT2x6" 
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" 
-            integrity="sha512-xRllwz2gdZciIB+AkEbeq+gVhX8VB8XsfqeFbUh+SzHlN96dEduwtTuVuc2u9EROlmW9+yhRlxjif66ORpsgVA==" 
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r164/three.min.js" integrity="sha512-334dJpT24/3JgEtb2x2iBctM+3Wc23IIJ3u2kN3u5vT2uF3rIJh2U2v/fC6A37mJofRGpT1LcCvBf2Q9i9zL+g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRNebz+yOcc5TQr/zAKsthzhuv0hiyUKEiQEQXEynnXCvNTOk50dg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js" integrity="sha512-aNMyYYxdIxTTzJO3uDBgBCSgPjBbkmoV23rIdeTRsrjEZECReC46T4+MhFzlVc/g0/dar5trMqAUyRxSZNdMCg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js" integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" integrity="sha512-xRllwz2Ibi3J2I2F6cP2TVN2NtalllkvCIwcYvrLseXL2N2LCEp2ggC5/z2Al9I6mgCINAeMhA/F/j/hM1OaBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
 
-            // --- Three.js Background ---
-            let scene, camera, renderer, stars;
+        // --- MODULE 1: THREE.JS BACKGROUND ---
+        function initThree() {
+            try {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const canvas = document.getElementById('bg-canvas');
+                const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
-            function initThree() {
-                scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
-                camera.position.z = 1;
-                camera.rotation.x = Math.PI / 2;
-
-                renderer = new THREE.WebGLRenderer({
-                    canvas: document.getElementById('three-bg'),
-                    antialias: true,
-                });
                 renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setClearColor(0x000000, 0); 
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-                const starGeo = new THREE.BufferGeometry();
-                const starVertices = [];
-                for (let i = 0; i < 6000; i++) {
-                    const x = (Math.random() - 0.5) * 2000;
-                    const y = (Math.random() - 0.5) * 2000;
-                    const z = (Math.random() - 0.5) * 2000;
-                    starVertices.push(x, y, z);
-                }
-                starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-                
-                let sprite = new THREE.TextureLoader().load('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABl0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjUuMTAw9HKhAAAAXklEQVQ4T2NkoBAwUqifgboGzJy76AIjE3tXEZ8LsoBj2s4g2f8z284g2f8zY9f6/1/Y2vj/f2M7++8f2L2+SzC4d23Dx8+mXv97uPGd5cN7z7a/Q8QYAAAKvU0Wd2B23gAAAAASUVORK5CYII=');
-                let starMaterial = new THREE.PointsMaterial({
-                    color: 0xaaaaaa,
-                    size: 0.7,
-                    map: sprite,
-                    transparent: true,
-                });
-                stars = new THREE.Points(starGeo, starMaterial);
-                scene.add(stars);
-
-                window.addEventListener('resize', onWindowResize, false);
-                animate();
-            }
-
-            function onWindowResize() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-
-            function animate() {
-                stars.rotation.y += 0.0001;
-                renderer.render(scene, camera);
-                requestAnimationFrame(animate);
-            }
-            
-            initThree();
-
-            // --- GSAP & Anime.js Animations ---
-            function initAnimations() {
-                gsap.registerPlugin(ScrollTrigger);
-
-                const tl = gsap.timeline();
-                tl.to('.site-header h1', { y: 0, opacity: 1, duration: 1, ease: 'power3.out' })
-                  .to('.board-container', { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.6')
-                  .to('.controls-container', { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.6');
-
-                gsap.utils.toArray('.fade-in').forEach(el => {
-                    gsap.fromTo(el, 
-                        { opacity: 0, y: 50 },
-                        {
-                            opacity: 1,
-                            y: 0,
-                            duration: 1,
-                            scrollTrigger: {
-                                trigger: el,
-                                start: 'top 85%',
-                                toggleActions: 'play none none none',
-                            }
+                const geometry = new THREE.PlaneGeometry(10, 10, 64, 64);
+                const material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        uTime: { value: 0.0 },
+                        uColor1: { value: new THREE.Color(0x1a1a1d) },
+                        uColor2: { value: new THREE.Color(0x111113) },
+                    },
+                    vertexShader: `
+                        varying vec2 vUv;
+                        void main() {
+                            vUv = uv;
+                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                         }
-                    );
+                    `,
+                    fragmentShader: `
+                        uniform float uTime;
+                        uniform vec3 uColor1;
+                        uniform vec3 uColor2;
+                        varying vec2 vUv;
+
+                        float random (in vec2 st) {
+                            return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+                        }
+
+                        float noise (in vec2 st) {
+                            vec2 i = floor(st);
+                            vec2 f = fract(st);
+                            float a = random(i);
+                            float b = random(i + vec2(1.0, 0.0));
+                            float c = random(i + vec2(0.0, 1.0));
+                            float d = random(i + vec2(1.0, 1.0));
+                            vec2 u = f*f*(3.0-2.0*f);
+                            return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+                        }
+
+                        void main() {
+                            vec2 pos = vec2(vUv * 5.0);
+                            float n = noise(pos + uTime * 0.1);
+                            vec3 color = mix(uColor1, uColor2, smoothstep(0.4, 0.6, n));
+                            gl_FragColor = vec4(color, 1.0);
+                        }
+                    `
                 });
 
-                document.querySelectorAll('#reset-button').forEach(button => {
-                    button.addEventListener('mouseenter', () => {
-                        anime({
-                            targets: button,
-                            scale: 1.05,
-                            duration: 200,
-                            easing: 'easeOutQuad'
-                        });
-                    });
-                    button.addEventListener('mouseleave', () => {
-                        anime({
-                            targets: button,
-                            scale: 1,
-                            duration: 200,
-                            easing: 'easeOutQuad'
-                        });
-                    });
+                const mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+                camera.position.z = 1.5;
+
+                const clock = new THREE.Clock();
+                function animate() {
+                    material.uniforms.uTime.value = clock.getElapsedTime();
+                    renderer.render(scene, camera);
+                    requestAnimationFrame(animate);
+                }
+                animate();
+                
+                canvas.style.opacity = 1;
+
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 });
+            } catch(e) {
+                console.error("Three.js initialization failed:", e);
             }
+        }
 
-            initAnimations();
+        // --- MODULE 2: GSAP & ANIME.JS ANIMATIONS ---
+        function initAnimations() {
+            // GSAP Intro Animation
+            gsap.registerPlugin(ScrollTrigger);
+            const tl = gsap.timeline();
+            tl.to('.hero .clip-text > div', {
+                y: 0,
+                duration: 1.5,
+                stagger: 0.1,
+                ease: 'power4.out'
+            })
+            .to('.hero p', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=1')
+            .to('.scroll-down-indicator', { opacity: 0.7, y: 0, duration: 1, ease: 'power3.out' }, '-=0.5');
 
-            // --- Chess Game Logic ---
+            // GSAP Scroll Animations
+            gsap.to('.hero', {
+                scrollTrigger: {
+                    trigger: '.hero',
+                    start: 'top top',
+                    end: 'bottom top',
+                    scrub: true,
+                },
+                opacity: 0,
+                scale: 0.95,
+            });
+
+            gsap.from('.arena', {
+                scrollTrigger: {
+                    trigger: '#arena',
+                    start: 'top 80%',
+                    end: 'top 40%',
+                    scrub: 1
+                },
+                opacity: 0,
+                y: 50,
+            });
+
+            // Anime.js Micro-interactions
+            document.querySelectorAll('.control-button, .cta-button').forEach(button => {
+                button.addEventListener('mouseenter', () => {
+                    anime({
+                        targets: button,
+                        scale: 1.05,
+                        duration: 300,
+                        easing: 'easeOutElastic(1, .8)'
+                    });
+                });
+                button.addEventListener('mouseleave', () => {
+                    anime({
+                        targets: button,
+                        scale: 1,
+                        duration: 300,
+                        easing: 'easeOutElastic(1, .8)'
+                    });
+                });
+            });
+        }
+        
+        // --- MODULE 3: CHESS LOGIC & AI ---
+        function initChessGame() {
             let board = null;
             const game = new Chess();
+            let playerColor = 'w';
+            let searchDepth = 3;
+            
             const $status = $('#status');
+            const $fen = $('#fen');
             const $pgn = $('#pgn');
-            let playerColor = 'w'; // Player is always White
-
-            function updateStatus() {
-                let status = '';
-                const moveColor = game.turn() === 'w' ? 'White' : 'Black';
-
-                if (game.in_checkmate()) {
-                    status = 'Game over, ' + moveColor + ' is in checkmate.';
-                } else if (game.in_draw()) {
-                    status = 'Game over, drawn position.';
-                } else {
-                    status = moveColor + "'s turn to move";
-                    if (game.in_check()) {
-                        status += ', ' + moveColor + ' is in check.';
-                    }
-                }
-                
-                const oldStatus = $status.text();
-                if(oldStatus !== status) {
-                    anime({
-                        targets: '#status',
-                        opacity: [1, 0],
-                        duration: 200,
-                        easing: 'easeInOutQuad',
-                        complete: function() {
-                            $status.text(status);
-                            anime({
-                                targets: '#status',
-                                opacity: [0, 1],
-                                duration: 200,
-                                easing: 'easeInOutQuad'
-                            });
-                        }
-                    });
-                }
-                $pgn.html(game.pgn());
-                $pgn.scrollTop($pgn[0].scrollHeight);
-            }
+            const $thinking = $('#thinking-indicator');
 
             function onDragStart(source, piece, position, orientation) {
-                if (game.game_over() === true ||
+                if (game.isGameOver() === true ||
                     (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
                     (game.turn() === 'b' && piece.search(/^w/) !== -1) ||
                     game.turn() !== playerColor) {
                     return false;
                 }
             }
-
+            
             function onDrop(source, target) {
                 const move = game.move({
                     from: source,
                     to: target,
-                    promotion: 'q' 
+                    promotion: 'q'
                 });
 
                 if (move === null) return 'snapback';
-
+                
                 updateStatus();
-                window.setTimeout(makeBestMove, 250);
+                if (game.turn() !== playerColor) {
+                    window.setTimeout(makeBestMove, 250);
+                }
             }
 
             function onSnapEnd() {
                 board.position(game.fen());
             }
+            
+            function updateStatus() {
+                let status = '';
+                const moveColor = (game.turn() === 'b' ? 'Black' : 'White');
 
-            function makeBestMove() {
-                if (game.game_over()) return;
+                if (game.isCheckmate()) {
+                    status = 'Game over, ' + moveColor + ' is in checkmate.';
+                } else if (game.isDraw()) {
+                    status = 'Game over, drawn position';
+                } else {
+                    status = moveColor + ' to move';
+                    if (game.in_check()) {
+                        status += ', ' + moveColor + ' is in check.';
+                    }
+                }
                 
-                const bestMove = calculateBestMove(game);
-                game.move(bestMove);
+                $status.html(status);
+                $fen.val(game.fen());
+                $pgn.html(game.pgn());
+            }
+            
+            const pieceValues = { 'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'k': 20000 };
+
+            const pst = {
+                'p': [
+                    [0,  0,  0,  0,  0,  0,  0,  0],
+                    [50, 50, 50, 50, 50, 50, 50, 50],
+                    [10, 10, 20, 30, 30, 20, 10, 10],
+                    [5,  5, 10, 25, 25, 10,  5,  5],
+                    [0,  0,  0, 20, 20,  0,  0,  0],
+                    [5, -5,-10,  0,  0,-10, -5,  5],
+                    [5, 10, 10,-20,-20, 10, 10,  5],
+                    [0,  0,  0,  0,  0,  0,  0,  0]
+                ],
+                'n': [
+                    [-50,-40,-30,-30,-30,-30,-40,-50],
+                    [-40,-20,  0,  0,  0,  0,-20,-40],
+                    [-30,  0, 10, 15, 15, 10,  0,-30],
+                    [-30,  5, 15, 20, 20, 15,  5,-30],
+                    [-30,  0, 15, 20, 20, 15,  0,-30],
+                    [-30,  5, 10, 15, 15, 10,  5,-30],
+                    [-40,-20,  0,  5,  5,  0,-20,-40],
+                    [-50,-40,-30,-30,-30,-30,-40,-50]
+                ],
+                'b': [
+                    [-20,-10,-10,-10,-10,-10,-10,-20],
+                    [-10,  0,  0,  0,  0,  0,  0,-10],
+                    [-10,  0,  5, 10, 10,  5,  0,-10],
+                    [-10,  5,  5, 10, 10,  5,  5,-10],
+                    [-10,  0, 10, 10, 10, 10,  0,-10],
+                    [-10, 10, 10, 10, 10, 10, 10,-10],
+                    [-10,  5,  0,  0,  0,  0,  5,-10],
+                    [-20,-10,-10,-10,-10,-10,-10,-20]
+                ],
+                'r': [
+                    [0,  0,  0,  0,  0,  0,  0,  0],
+                    [5, 10, 10, 10, 10, 10, 10,  5],
+                    [-5,  0,  0,  0,  0,  0,  0, -5],
+                    [-5,  0,  0,  0,  0,  0,  0, -5],
+                    [-5,  0,  0,  0,  0,  0,  0, -5],
+                    [-5,  0,  0,  0,  0,  0,  0, -5],
+                    [-5,  0,  0,  0,  0,  0,  0, -5],
+                    [0,  0,  0,  5,  5,  0,  0,  0]
+                ],
+                'q': [
+                    [-20,-10,-10, -5, -5,-10,-10,-20],
+                    [-10,  0,  0,  0,  0,  0,  0,-10],
+                    [-10,  0,  5,  5,  5,  5,  0,-10],
+                    [-5,  0,  5,  5,  5,  5,  0, -5],
+                    [0,  0,  5,  5,  5,  5,  0, -5],
+                    [-10,  5,  5,  5,  5,  5,  0,-10],
+                    [-10,  0,  5,  0,  0,  0,  0,-10],
+                    [-20,-10,-10, -5, -5,-10,-10,-20]
+                ],
+                'k': [
+                    [-30,-40,-40,-50,-50,-40,-40,-30],
+                    [-30,-40,-40,-50,-50,-40,-40,-30],
+                    [-30,-40,-40,-50,-50,-40,-40,-30],
+                    [-30,-40,-40,-50,-50,-40,-40,-30],
+                    [-20,-30,-30,-40,-40,-30,-30,-20],
+                    [-10,-20,-20,-20,-20,-20,-20,-10],
+                    [20, 20,  0,  0,  0,  0, 20, 20],
+                    [20, 30, 10,  0,  0, 10, 30, 20]
+                ]
+            };
+
+            const evaluateBoard = function (board, color) {
+                let totalEvaluation = 0;
+                for (let i = 0; i < 8; i++) {
+                    for (let j = 0; j < 8; j++) {
+                        totalEvaluation += getPieceValue(board[i][j], i, j);
+                    }
+                }
+                return color === 'w' ? totalEvaluation : -totalEvaluation;
+            };
+
+            const getPieceValue = function (piece, x, y) {
+                if (piece === null) return 0;
+                const isWhite = piece.color === 'w';
+                const absoluteValue = pieceValues[piece.type] + (isWhite ? pst[piece.type][y][x] : -pst[piece.type][7-y][x]);
+                return isWhite ? absoluteValue : -absoluteValue;
+            };
+
+            const minimax = function (game, depth, alpha, beta, isMaximizingPlayer) {
+                if (depth === 0) {
+                    return -evaluateBoard(game.board(), game.turn());
+                }
+                const newGameMoves = game.moves();
+                
+                if (isMaximizingPlayer) {
+                    let bestMove = -Infinity;
+                    for (let i = 0; i < newGameMoves.length; i++) {
+                        game.move(newGameMoves[i]);
+                        bestMove = Math.max(bestMove, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                        game.undo();
+                        alpha = Math.max(alpha, bestMove);
+                        if (beta <= alpha) return bestMove;
+                    }
+                    return bestMove;
+                } else {
+                    let bestMove = Infinity;
+                    for (let i = 0; i < newGameMoves.length; i++) {
+                        game.move(newGameMoves[i]);
+                        bestMove = Math.min(bestMove, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                        game.undo();
+                        beta = Math.min(beta, bestMove);
+                        if (beta <= alpha) return bestMove;
+                    }
+                    return bestMove;
+                }
+            };
+
+            const getBestMove = function (game, depth) {
+                const newGameMoves = game.moves();
+                let bestMove = -Infinity;
+                let bestMoveFound;
+
+                for (let i = 0; i < newGameMoves.length; i++) {
+                    const newGameMove = newGameMoves[i];
+                    game.move(newGameMove);
+                    const value = minimax(game, depth - 1, -Infinity, Infinity, false);
+                    game.undo();
+                    if (value >= bestMove) {
+                        bestMove = value;
+                        bestMoveFound = newGameMove;
+                    }
+                }
+                return bestMoveFound;
+            };
+
+            const makeBestMove = function () {
+                if (game.isGameOver()) {
+                    alert('Game over');
+                    return;
+                }
+                $thinking.show();
+                
+                // Use setTimeout to allow UI to update before blocking for AI calculation
+                setTimeout(() => {
+                    const move = getBestMove(game, searchDepth);
+                    game.move(move);
+                    board.position(game.fen());
+                    updateStatus();
+                    $thinking.hide();
+                }, 100);
+            };
+
+            function resetGame() {
+                game.reset();
+                playerColor = $('#player-side').val();
+                searchDepth = parseInt($('#difficulty').val(), 10);
+                
+                if (playerColor === 'b') {
+                    board.orientation('black');
+                    makeBestMove();
+                } else {
+                    board.orientation('white');
+                }
                 board.position(game.fen());
                 updateStatus();
             }
 
-            const pieceValue = { 'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'k': 20000 };
-            const pst = {
-                'p': [
-                    [0, 0, 0, 0, 0, 0, 0, 0],
-                    [50, 50, 50, 50, 50, 50, 50, 50],
-                    [10, 10, 20, 30, 30, 20, 10, 10],
-                    [5, 5, 10, 25, 25, 10, 5, 5],
-                    [0, 0, 0, 20, 20, 0, 0, 0],
-                    [5, -5, -10, 0, 0, -10, -5, 5],
-                    [5, 10, 10, -20, -20, 10, 10, 5],
-                    [0, 0, 0, 0, 0, 0, 0, 0]
-                ],
-                'n': [
-                    [-50, -40, -30, -30, -30, -30, -40, -50],
-                    [-40, -20, 0, 0, 0, 0, -20, -40],
-                    [-30, 0, 10, 15, 15, 10, 0, -30],
-                    [-30, 5, 15, 20, 20, 15, 5, -30],
-                    [-30, 0, 15, 20, 20, 15, 0, -30],
-                    [-30, 5, 10, 15, 15, 10, 5, -30],
-                    [-40, -20, 0, 5, 5, 0, -20, -40],
-                    [-50, -40, -30, -30, -30, -30, -40, -50]
-                ],
-                'b': [
-                    [-20, -10, -10, -10, -10, -10, -10, -20],
-                    [-10, 0, 0, 0, 0, 0, 0, -10],
-                    [-10, 0, 5, 10, 10, 5, 0, -10],
-                    [-10, 5, 5, 10, 10, 5, 5, -10],
-                    [-10, 0, 10, 10, 10, 10, 0, -10],
-                    [-10, 10, 10, 10, 10, 10, 10, -10],
-                    [-10, 5, 0, 0, 0, 0, 5, -10],
-                    [-20, -10, -10, -10, -10, -10, -10, -20]
-                ],
-                'r': [
-                    [0, 0, 0, 0, 0, 0, 0, 0],
-                    [5, 10, 10, 10, 10, 10, 10, 5],
-                    [-5, 0, 0, 0, 0, 0, 0, -5],
-                    [-5, 0, 0, 0, 0, 0, 0, -5],
-                    [-5, 0, 0, 0, 0, 0, 0, -5],
-                    [-5, 0, 0, 0, 0, 0, 0, -5],
-                    [-5, 0, 0, 0, 0, 0, 0, -5],
-                    [0, 0, 0, 5, 5, 0, 0, 0]
-                ],
-                'q': [
-                    [-20, -10, -10, -5, -5, -10, -10, -20],
-                    [-10, 0, 0, 0, 0, 0, 0, -10],
-                    [-10, 0, 5, 5, 5, 5, 0, -10],
-                    [-5, 0, 5, 5, 5, 5, 0, -5],
-                    [0, 0, 5, 5, 5, 5, 0, -5],
-                    [-10, 5, 5, 5, 5, 5, 0, -10],
-                    [-10, 0, 5, 0, 0, 0, 0, -10],
-                    [-20, -10, -10, -5, -5, -10, -10, -20]
-                ],
-                 'k': [
-                    [-30, -40, -40, -50, -50, -40, -40, -30],
-                    [-30, -40, -40, -50, -50, -40, -40, -30],
-                    [-30, -40, -40, -50, -50, -40, -40, -30],
-                    [-30, -40, -40, -50, -50, -40, -40, -30],
-                    [-20, -30, -30, -40, -40, -30, -30, -20],
-                    [-10, -20, -20, -20, -20, -20, -20, -10],
-                    [20, 20, 0, 0, 0, 0, 20, 20],
-                    [20, 30, 10, 0, 0, 10, 30, 20]
-                ]
-            };
+            $('#start-button').on('click', resetGame);
 
-            function evaluateBoard(board, color) {
-                let totalEvaluation = 0;
-                for (let i = 0; i < 8; i++) {
-                    for (let j = 0; j < 8; j++) {
-                        const piece = board[i][j];
-                        if (piece) {
-                            const value = pieceValue[piece.type] + (piece.color === 'w' ? pst[piece.type][i][j] : -pst[piece.type][7 - i][j]);
-                            totalEvaluation += (piece.color === color ? value : -value);
-                        }
-                    }
+            $('#undo-button').on('click', () => {
+                game.undo(); // AI move
+                if (game.history().length > 0 && playerColor !== game.turn()) {
+                   game.undo(); // Player move
                 }
-                return totalEvaluation;
-            }
-
-            function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
-                if (depth === 0) {
-                    return -evaluateBoard(game.board(), game.turn());
-                }
-
-                const newGameMoves = game.moves();
-                if (isMaximizingPlayer) {
-                    let bestVal = -Infinity;
-                    for (let i = 0; i < newGameMoves.length; i++) {
-                        game.move(newGameMoves[i]);
-                        bestVal = Math.max(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
-                        game.undo();
-                        alpha = Math.max(alpha, bestVal);
-                        if (beta <= alpha) {
-                            return bestVal;
-                        }
-                    }
-                    return bestVal;
-                } else {
-                    let bestVal = Infinity;
-                    for (let i = 0; i < newGameMoves.length; i++) {
-                        game.move(newGameMoves[i]);
-                        bestVal = Math.min(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
-                        game.undo();
-                        beta = Math.min(beta, bestVal);
-                        if (beta <= alpha) {
-                            return bestVal;
-                        }
-                    }
-                    return bestVal;
-                }
-            }
-
-            function calculateBestMove(gameInstance) {
-                const newGameMoves = gameInstance.moves();
-                let bestMove = null;
-                let bestValue = -Infinity;
-
-                for (let i = 0; i < newGameMoves.length; i++) {
-                    const newGameMove = newGameMoves[i];
-                    gameInstance.move(newGameMove);
-                    const boardValue = minimax(gameInstance, 2, -Infinity, Infinity, false);
-                    gameInstance.undo();
-                    if (boardValue > bestValue) {
-                        bestValue = boardValue;
-                        bestMove = newGameMove;
-                    }
-                }
-                return bestMove;
-            }
-
-            function resetGame() {
-                game.reset();
-                board.start();
+                board.position(game.fen());
                 updateStatus();
-            }
-            
-            $('#reset-button').on('click', resetGame);
+            });
+
+            $('#fen').on('change', (e) => {
+                const fen = e.target.value;
+                if (game.load(fen)) {
+                    board.position(fen);
+                    updateStatus();
+                } else {
+                   alert('Invalid FEN string');
+                }
+            });
 
             const config = {
                 draggable: true,
@@ -579,12 +833,20 @@
                 onDragStart: onDragStart,
                 onDrop: onDrop,
                 onSnapEnd: onSnapEnd,
-                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+                pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png'
             };
-            board = Chessboard('myBoard', config);
+            board = Chessboard('gameBoard', config);
+            $(window).on('resize', () => board.resize());
+            
+            resetGame();
+        }
 
-            updateStatus();
-        });
+        // --- INITIALIZATION ---
+        initThree();
+        initAnimations();
+        initChessGame();
+    });
     </script>
+
 </body>
 </html>
