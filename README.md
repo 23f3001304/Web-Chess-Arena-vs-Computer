@@ -1,87 +1,54 @@
-# Chess Arena
+# Web Chess Arena
 
 ## Summary
 
-Chess Arena is a production-ready, static web application that provides a polished and responsive environment for playing chess against a powerful, onboard computer opponent. The application is designed to run smoothly on modern browsers without relying on remote engines or cloud calls. It features a genuine search algorithm, a comprehensive set of user interface features, and a high degree of polish to deliver a professional-grade chess experience.
+Web Chess Arena is a static web application that allows users to play chess against a computer opponent directly in their browser. This project is built with HTML, CSS, and JavaScript, and it leverages the powerful `chess.js` library for game logic and `chessboard.js` for rendering the board. The application is designed to be simple, intuitive, and responsive, providing a seamless chess-playing experience without the need for a backend server.
 
 ## Setup
+
+To run this application locally, follow these steps:
 
 1.  **Clone the repository:**
     
 ```bash
-    git clone https://github.com/your-username/chess-arena.git
-    cd chess-arena
+    git clone https://github.com/23f3001304/Web-Chess-Arena-vs-Computer.git
+    cd Web-Chess-Arena-vs-Computer
     ```
 
 
-2.  **Install dependencies:**
-    This project has no external dependencies. All necessary code is included in the repository.
+2.  **No dependencies to install:**
+    This project uses client-side libraries that are included via a Content Delivery Network (CDN), so there are no additional installation steps required.
 
-3.  **Run the application:**
-    Open the `index.html` file in your web browser to start the application.
+3.  **Open the application:**
+    Open the `index.html` file in your preferred web browser.
+
+    *Note on the piece image loading issue:* The original HTML snippet had an incomplete URL for the chessboard stylesheet, which caused the piece images not to load. This has been corrected in the code to use the complete and correct CDN link for `chessboard-js`.
 
 ## Usage
 
-### Gameplay
-
-*   **Moving Pieces:** Drag and drop pieces to their desired squares, or click a piece to highlight its legal moves and then click the destination square. The board supports mouse, touch, and keyboard input.
-*   **Timers:** Choose between increment and countdown timers to manage game time.
-*   **Game Controls:** Use the controls to undo/redo moves, resign the game, or offer a draw.
-*   **Game Information:** The move list displays all moves in Standard Algebraic Notation (SAN). The score sheet tracks captured pieces and material advantage.
-
-### Features
-
-*   **PGN/FEN Import-Export:** Import games from PGN or FEN strings, and export your games for analysis in other tools.
-*   **Themes:** Customize the appearance of the board and pieces with classic, high-contrast, and dark mode themes.
-*   **Opening Book Hints:** Receive hints from a built-in opening book to improve your opening play.
-*   **Post-Game Review:** Analyze your games with move-by-move commentary, an advantage chart, and options to share your game.
+*   **Playing the Game:** To move a piece, you can either drag and drop it to a valid square or click on the piece to see its legal moves and then click on the destination square.
+*   **Game Controls:** The interface includes controls to start a new game, undo moves, and analyze the game.
+*   **AI Opponent:** The computer opponent will automatically make its move after you have played your turn. The AI's strength is determined by a minimax search algorithm with alpha-beta pruning.
 
 ## Code Explanation
 
-### Core Logic
+The application is structured into three main parts: HTML for the structure, CSS for styling, and JavaScript for the game's logic and interactivity.
 
-The core chess logic, including move generation, validation, and game state management, is handled by a modified version of the `chess.js` library. This ensures strict adherence to all chess rules, including castling, en passant, and promotion.
+*   **`index.html`**: This file contains the basic structure of the web page, including the chessboard container and user interface elements. It also includes the necessary CDN links for the `chess.js` and `chessboard.js` libraries.
+*   **`style.css`**: This file provides the styling for the application, ensuring a clean and responsive layout.
+*   **`main.js`**: This is the core JavaScript file that handles the game's logic. It initializes the chessboard using `chessboard.js` and manages the game state with `chess.js`. It also implements the AI opponent's logic, which is based on the minimax algorithm to calculate the best move.
 
-### Rendering
+The application relies on the following key libraries:
 
-The chessboard and pieces are rendered using a custom implementation inspired by `chessboard.js`, built with standard HTML, CSS, and JavaScript. The rendering is optimized for performance using `requestAnimationFrame` to ensure smooth animations and a responsive user interface.
+*   **`chess.js`**: A powerful JavaScript library for chess move generation, validation, and game state management.
+*   **`chessboard.js`**: A flexible library for rendering an interactive and customizable chessboard.
 
-### AI Opponent
+The AI's intelligence is derived from several evaluation heuristics, including:
 
-The computer opponent is a JavaScript-based engine that runs in a Web Worker to prevent UI blocking. The AI's strength can be adjusted by changing its search depth. The core of the AI is a **minimax search algorithm with alpha-beta pruning**.
-
-#### AI Architecture
-
-1.  **Search Algorithm:** A depth-limited minimax search with alpha-beta pruning explores the game tree to find the best move.
-2.  **Evaluation Heuristics:** The board position is evaluated using a combination of heuristics:
-    *   **Material:** The total value of pieces on the board.
-    *   **Piece-Square Tables:** Positional bonuses for pieces based on their location.
-    *   **Mobility:** The number of legal moves available to each side.
-    *   **King Safety:** Factors such as pawn shields and proximity of enemy pieces.
-    *   **Pawn Structure:** The arrangement of pawns and their strengths/weaknesses.
-3.  **Transposition Table:** A hash table is used to store previously evaluated positions, avoiding redundant calculations.
-
-#### Tweaking Evaluation Weights
-
-The AI's playing style can be modified by adjusting the weights of the evaluation heuristics. These weights are defined in `js/ai.js`. For example, to make the AI prioritize piece development, you can increase the weight of the piece-square table evaluation.
-
-
-```javascript
-// Example of evaluation weights in js/ai.js
-const evaluationWeights = {
-    material: 1.0,
-    pieceSquareTables: 0.5,
-    mobility: 0.1,
-    kingSafety: 0.7,
-    pawnStructure: 0.2
-};
-```
-
-
-### Testing
-
-The application includes a suite of tests to ensure correctness. To run the tests, open `tests.html` in your browser. The tests cover move generation, game state, and AI performance.
+*   **Alpha-Beta Pruning**: An optimization technique for the minimax algorithm that reduces the number of nodes evaluated in the search tree.
+*   **Piece-Square Tables**: These tables assign scores to each piece based on its position on the board, encouraging strategic placement.
+*   **Evaluation Heuristics**: The AI considers material advantage, piece mobility, king safety, and pawn structure to evaluate board positions, as described in chess programming research.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**. You can find the full license text in the `LICENSE` file in the repository.
